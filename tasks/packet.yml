@@ -1,0 +1,107 @@
+---
+
+- name: remove packet mirror
+  file:
+    path: /etc/yum.repos.d/packet.repo
+    state: absent
+  when: provider == 'packet'
+
+# - name: fetch ssh keys from packet metadata
+#   shell: curl -sSL https://metadata.packet.net/metadata | jq -r '.ssh_keys | .[] // empty'
+#   args:
+#     warn: false
+#   register: normalize_ssh_keys
+#   changed_when: false
+
+# - name: Copy {{ normalize_username }} SSH authorized key(s)
+#   authorized_key:
+#     exclusive: yes
+#     user: "{{ normalize_username }}"
+#     state: present
+#     key: "{{ normalize_ssh_keys.stdout }}"
+
+- name: add screen group
+  group:
+    name: screen
+    state: present
+    system: yes
+
+- name: disable services
+  service:
+    name: "{{ item }}"
+    enabled: no
+    masked: yes
+  with_items:
+    - cloud-config
+    - cloud-final
+    - cloud-init
+    - cloud-init-local
+    - kdump
+    - rhel-import-state
+    - rhel-readonly
+    - wpa_supplicant
+  notify:
+  - normalize reboot needed
+
+- name: install dependencies
+  yum:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - iscsi-initiator-utils
+      - device-mapper-multipath
+      - e2fsprogs
+      - parted
+      - gdisk
+      - util-linux
+      - dracut
+
+- name: remove ifcfg-eth0
+  file:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    state: absent
+  notify:
+  - normalize reboot needed
+
+- name: enable services
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+    - multipathd
+  notify:
+  - normalize reboot needed
+
+- name: download packet-block-storage scripts
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 744
+  with_items:
+    - { dest: '/usr/bin/packet-block-storage-attach', url: 'https://raw.githubusercontent.com/packethost/packet-block-storage/master/packet-block-storage-attach' }
+    - { dest: '/usr/bin/packet-block-storage-detach', url: 'https://raw.githubusercontent.com/packethost/packet-block-storage/master/packet-block-storage-detach' }
+
+- name: execute packet-block-storage-attach
+  shell: /usr/bin/packet-block-storage-attach -m queue
+  args:
+    warn: false
+  changed_when: false
+
+- name: fetch volume name from packet metadata
+  shell: curl -sSL https://metadata.packet.net/metadata | jq -r '.volumes | .[].name //empty'
+  args:
+    warn: false
+  register: normalize_packet_volume_name
+  changed_when: false
+
+- name: set lvm_physical_device fact
+  set_fact:
+    lvm_physical_device: "/dev/mapper/{{ normalize_packet_volume_name.stdout }}"
+
+# - include_tasks: packet-type0.yml
+#   when: packet_plan == "baremetal_0"

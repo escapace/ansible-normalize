@@ -1,0 +1,175 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+DEVICE="${1:-/dev/sda}"
+PARTITION="${2:-3}"
+COMMAND="{{ common_partition_size }}"
+
+DEVICE_ESCAPED="$(echo "$DEVICE" | sed 's/\//\\\//g')"
+NUMBER_REGEX='^[0-9]+$'
+
+echo "resize-root: Device: \"${DEVICE}\", partition \"${PARTITION}\", size \"${COMMAND}\""
+
+
+wrap () {
+    local width=55
+
+    tr -s ' ' ' ' |
+    tr '\012' ' ' |
+    sed "s/ $/@/; s/   */@@/g; s/[^@]\{${width}\} /&@/g" |
+    tr '@' '\012'
+}
+
+indent () {
+    local line
+
+    while read -r line
+    do
+        echo "... ${line}"
+    done
+}
+
+# if [[ "${COMMAND}" == "restore" ]]
+# then
+#     START=4001792
+#     NEW_END=156301311
+#
+#     (
+#     sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<- EOF | fdisk "${DEVICE}"
+#         d # delete partition
+#         ${PARTITION} # partition number
+#         w # write the partition table
+#         q # done
+# 	EOF
+#     ) 2>&1 | wrap | indent || true
+#
+#     (
+#     sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<- EOF | fdisk "${DEVICE}"
+#         d # delete partition
+#         4 # partition number
+#         w # write the partition table
+#         q # done
+# 	EOF
+#     ) 2>&1 | wrap | indent || true
+#
+#     parted -a none -sm "${DEVICE}" mkpart primary ext4 "${START}s" "${NEW_END}s" 2>&1 | wrap | indent || true
+#
+#     exit
+# fi
+
+if ! [[ "${COMMAND}" =~ ${NUMBER_REGEX} ]]
+then
+    echo "Not a number" >&2; exit 1
+fi
+
+[[ "${COMMAND}" -le 0 ]] && echo "ArgumentError: can't be less than zero" && exit 1
+[[ "${COMMAND}" -gt 100 ]] && echo "ArgumentError: can't be more than 100" && exit 1
+
+function device_size () {
+    parted -sm "${DEVICE}" unit s print \
+        | sed -n -e "/^${DEVICE_ESCAPED}:/p"      \
+        | awk -F':' '{ print $2 }'                \
+        | grep -o '[0-9]\+'
+}
+
+function part_field () {
+    local field="$1"
+    local unit="${2:-s}"
+
+    parted -sm "${DEVICE}" unit "${unit}" print \
+        | sed -n -e "/^${PARTITION}:/p"         \
+        | grep ext4 | awk -F':' "{print \$${field}}"
+}
+
+function partition_exists () {
+    local partition="${1:-$PARTITION}"
+
+    local check
+    check="$(parted -sm "${DEVICE}" print \
+        | sed -n -e "/^${partition}:/p"  \
+        | awk -F':' '{print $1}')"
+
+    [[ "${check}" == "${partition}" ]]
+}
+
+function part_start () {
+    part_field 2 | grep -o '[0-9]\+'
+}
+
+function part_end () {
+    part_field 3 | grep -o '[0-9]\+'
+}
+
+function new_part_start () {
+    part_field 3 GB | grep -o '[0-9\.]\+' | awk '{print int($1+0.5)}'
+}
+
+function part_min_size () {
+    resize2fs -P "${DEVICE}${PARTITION}" 2>&1 \
+    | sed -n -e "/^Estimated minimum size of the filesystem:/p" \
+    | awk -F':' '{print $2}' \
+    | grep -o '[0-9]\+'
+}
+
+[[ ! -b "${DEVICE}" ]] && echo "Device ${DEVICE} does not exists, aborting" && exit 1
+! partition_exists 3 && echo "Partition ${DEVICE}3 does not exists, aborting" && exit 1
+partition_exists 4 && echo "Partition ${DEVICE}4 already exists, aborting" && exit 1
+
+DISK_SIZE="$(device_size)"
+START="$(part_start)"
+OLD_END="$(part_end)"
+NEW_SIZE="$(( COMMAND * DISK_SIZE / 100 ))"
+NEW_END="$(( START + NEW_SIZE ))"
+MINIMAL_SIZE="$(part_min_size)"
+
+[[ "${NEW_SIZE}" -le "${MINIMAL_SIZE}" ]] && echo "Partition size check failed, aborting" && exit
+[[ "${NEW_END}" == "${OLD_END}" ]] && echo "Nothing to do, already resized." && exit
+
+[[ -z "${DISK_SIZE}" ]] && echo "Variable DISK_SIZE is empty, aborting" && exit 1
+[[ -z "${START}" ]] && echo "Variable START is empty, aborting" && exit 1
+[[ -z "${OLD_END}" ]] && echo "Variable END is empty, aborting" && exit 1
+[[ -z "${NEW_END}" ]] && echo "Variable NEW_END is empty, aborting" && exit 1
+
+[[ "${DISK_SIZE}" -le "${START}" ]] && echo "Sector size check failed, aborting" && exit 1
+[[ "${DISK_SIZE}" -lt "${OLD_END}" ]] && echo "Sector size check failed, aborting" && exit 1
+[[ "${DISK_SIZE}" -le "${NEW_END}" ]] && echo "Sector size check failed, aborting" && exit 1
+[[ "${START}" -ge "${NEW_END}" ]] && echo "Sector size check failed, aborting" && exit 1
+[[ "${START}" -ge "${OLD_END}" ]] && echo "Sector size check failed, aborting" && exit 1
+
+(
+
+    echo -e "\nResizing filesystem on ${DEVICE}${PARTITION}\n"
+
+    resize2fs -f "${DEVICE}${PARTITION}" "${NEW_SIZE}s" 2>&1 | wrap | indent || true
+
+    echo -e "\nChecking filesystem on ${DEVICE}${PARTITION}\n"
+
+    e2fsck -fy "${DEVICE}${PARTITION}" 2>&1 | wrap | indent || true
+
+    echo -e "Removing partition ${DEVICE}${PARTITION}\n"
+
+    (
+        sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<- EOF | fdisk "${DEVICE}"
+            d # delete partition
+            ${PARTITION} # partition number
+            w # write the partition table
+            q # done
+	EOF
+    ) 2>&1 | wrap | indent || true
+
+    echo -e "\nRecreating partition ${DEVICE}${PARTITION}\n"
+
+    parted -a optimal -sm "${DEVICE}" mkpart primary ext4 "${START}s" "${NEW_END}s"  2>&1 | wrap | indent || true
+
+    echo -e "\nCreating a new $(new_part_start)Gb partition\n"
+
+    parted -a optimal -sm "${DEVICE}" mkpart primary "$(new_part_start)Gb" 100% 2>&1 | wrap | indent || true
+) || true
+
+
+[[ "${NEW_END}" == "$(part_end)" ]] &&
+partition_exists 3 &&               \
+partition_exists 4 &&               \
+echo -e "\nPartitions successfully created" && exit 0
+echo -e "\nFailed to create partitions"     && exit 1
