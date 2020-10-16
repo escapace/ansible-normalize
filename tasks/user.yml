@@ -1,0 +1,24 @@
+---
+
+- group: name={{ normalize_username }} state=present
+- user: name={{ normalize_username }} group={{ normalize_username }}
+
+- name: check groups
+  shell: /usr/bin/getent group | awk -F":" '{print $1}'
+  register: normalize_groups
+  changed_when: false
+
+- name: add secondary groups
+  user: name={{ normalize_username }} groups={{ item }} append=yes
+  when: item in normalize_groups.stdout_lines
+  with_items:
+    - sudo
+    - wheel
+
+- name: Allow {{ normalize_username }} to have passwordless sudo
+  lineinfile:
+    create: yes
+    dest: "/etc/sudoers.d/{{ normalize_username }}"
+    state: present
+    regexp: '^{{ normalize_username }}'
+    line: '{{ normalize_username }} ALL=(ALL) NOPASSWD: ALL'

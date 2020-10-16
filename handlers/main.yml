@@ -1,0 +1,28 @@
+---
+
+- name: normalize remove skipfsck
+  replace:
+    dest: /boot/grub/grub.cfg
+    regexp: '([\t ]+rd\.skipfsck)'
+    replace: ''
+
+- name: normalize remove fastboot
+  file:
+    path: /fastboot
+    state: absent
+
+- name: normalize enable fstab check
+  replace:
+    dest: /etc/fstab
+    regexp: '(^.*)([0]+[\t ]*)$'
+    replace: '\1 1'
+    backup: yes
+
+- name: normalize update grub
+  command: "{{item}}"
+  with_items:
+    - grub2-mkconfig -o /etc/grub2.cfg
+
+- name: normalize reboot needed
+  reboot:
+    post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"
