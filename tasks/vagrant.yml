@@ -1,10 +1,5 @@
 ---
 
-- name: Get the current kernel release.
-  command: uname -r
-  changed_when: false
-  register: kernel_release
-
 - name: Ensure necessary packages are installed.
   yum:
     name:
@@ -16,7 +11,6 @@
       - bzip2
       - kernel-headers
       - kernel-devel
-      - "kernel-devel-{{ kernel_release.stdout }}"
       - python3-libselinux
       - elfutils-libelf-devel
       - cifs-utils
