@@ -22,3 +22,4 @@
     state: present
     regexp: '^{{ normalize_username }}'
     line: '{{ normalize_username }} ALL=(ALL) NOPASSWD: ALL'
+    mode: 0640
