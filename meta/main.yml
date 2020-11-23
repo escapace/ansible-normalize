@@ -2,7 +2,7 @@
 
 galaxy_info:
   role_name: normalize
-  description: ferm role
+  description: normalize role
   issue_tracker_url: https://github.com/escapace/ansible-normalize/issues
   author: Escapace
   license: Apache-2.0
