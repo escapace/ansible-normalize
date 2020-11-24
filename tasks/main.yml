@@ -16,8 +16,8 @@
 # - include_tasks: ec2.yml
 #   when: provider == "ec2"
 
-- include_tasks: packet.yml
-  when: provider == "packet"
+- include_tasks: metal.yml
+  when: provider == "metal"
 
 - include_tasks: linode.yml
   when: provider == "linode"
