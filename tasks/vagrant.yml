@@ -1,46 +1,51 @@
 ---
 
-- name: Get the current kernel release.
+- name: get the current kernel release
   command: uname -r
   changed_when: false
   register: kernel_release
 
-- name: Set the appropriate libselinux package for RHEL 8.
+- name: set the appropriate libselinux package
   set_fact:
     normalize_libselinux_package: python3-libselinux
   when: ansible_distribution_major_version == '8'
 
-- name: Ensure necessary packages are installed.
+- name: ensure necessary packages are installed.
   yum:
     name:
-      - wget
-      - perl
-      - cpp
-      - gcc
-      - make
-      - bzip2
-      - kernel-headers
-      - kernel-devel
       - "kernel-devel-{{ kernel_release.stdout }}"
       - "{{ normalize_libselinux_package }}"
-      - elfutils-libelf-devel
+      - binutils
+      - bzip2
       - cifs-utils
+      - cpp
+      - dkms
+      - elfutils-libelf-devel
+      - gcc
+      - glibc-devel 
+      - glibc-headers
+      - kernel-devel
+      - kernel-headers
+      - libgomp
+      - make
+      - patch
+      - perl
+      - tar
+      - wget
     state: present
 
-# Fix slow DNS.
-- name: Fix slow DNS (adapted from Bento).
+- name: fix slow dns
   lineinfile:
     dest: /etc/sysconfig/network
     regexp: '^RES_OPTIONS'
     line: 'RES_OPTIONS="single-request-reopen"'
     state: present
 
-- name: Restart network service (RHEL < 8).
+- name: restart network service
   service: name=network state=restarted
   when: ansible_distribution_major_version < '8'
 
-# SSH daemon configuration.
-- name: Configure SSH daemon.
+- name: configure ssh daemon
   lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
@@ -52,8 +57,7 @@
     - regexp: '^GSSAPIAuthentication'
       line: 'GSSAPIAuthentication no'
 
-# Vagrant SSH configuration.
-- name: Configure Vagrant .ssh directory.
+- name: configure vagrant .ssh directory
   file:
     path: /home/vagrant/.ssh
     state: directory
@@ -61,7 +65,7 @@
     group: vagrant
     mode: 0700
 
-- name: Get Vagrant's public key.
+- name: get vagrant's public key
   get_url:
     url: https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub
     dest: /home/vagrant/.ssh/authorized_keys
@@ -69,26 +73,23 @@
     group: vagrant
     mode: 0600
 
-# VirtualBox tools installation.
-- name: Check if VirtualBox is running the guest VM.
+- name: check if virtualbox is running the guest vm
   stat: path=/home/vagrant/.vbox_version
   register: virtualbox_check
 
-- include_tasks: virtualbox.yml
-  when: virtualbox_check.stat.exists
-
-# VMware tools installation.
-- name: Check if VMWare is running the guest VM.
+- name: check if vmware is running the guest vm
   shell: "cat /proc/scsi/scsi | grep VMware"
   changed_when: false
   failed_when: false
   register: vmware_check
 
+- include_tasks: virtualbox.yml
+  when: virtualbox_check.stat.exists
+
 - include_tasks: vmware.yml
   when: vmware_check.rc == 0
 
-# Cleanup tasks.
-- name: Remove unneeded packages.
+- name: remove unneeded packages
   yum:
     name:
       - cpp
@@ -96,25 +97,19 @@
       - kernel-headers
     state: absent
 
-- name: Clean up yum.
+- name: clean up yum
   command: >
     yum clean all
     warn=false
   changed_when: true
 
-- name: Remove any remnants of VirtualBox ISOs.
-  shell: >
-    rm -rf VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?
-    warn=false
-  tags: ['skip_ansible_lint']
-
-- name: Remove RedHat interface persistence (step 1).
+- name: remove redhat interface persistence
   command: >
     rm -f /etc/udev/rules.d/70-persistent-net.rules
     warn=false
   tags: ['skip_ansible_lint']
 
-- name: Remove RedHat interface persistence (step 2).
+- name: remove redhat interface persistence
   lineinfile:
     dest: /etc/sysconfig/network-scripts/ifcfg-eth0
     regexp: "{{ item }}"
