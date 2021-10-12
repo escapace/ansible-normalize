@@ -5,24 +5,24 @@
 #     dest: /etc/yum.repos.d/vmware-tools.repo
 #     mode: 0644
 
-- name: Import VMWare tools GPG keys.
+- name: import vmware tools gpg keys
   rpm_key:
     key: "{{ item }}"
     state: present
   with_items:
     - "http://packages.vmware.com/tools/keys/VMWARE-PACKAGING-GPG-RSA-KEY.pub"
 
-- name: Add vmhgfs module (RHEL 6).
+- name: add vmhgfs module
   template:
     src: vmhgfs.modules.j2
     dest: /etc/sysconfig/modules/vmhgfs.modules
     mode: 0755
   when: ansible_distribution_major_version|int <= 6
 
-- name: Install open-vm-tools.
+- name: install open-vm-tools
   package: name=open-vm-tools state=present
 
-- name: Create temporary directories for VMware tools.
+- name: create temporary directories for vmware tools
   file:
     path: "/tmp/{{ item }}"
     state: directory
@@ -31,7 +31,7 @@
     - vmfusion
     - vmfusion-archive
 
-- name: Mount VMware tools.
+- name: mount vmware tools
   mount:
     name: /tmp/vmfusion
     src: /home/vagrant/linux.iso
@@ -39,23 +39,23 @@
     opts: loop
     state: mounted
 
-- name: Decompress VMware Tools installer into archive folder.
+- name: decompress vmware tools installer into archive folder
   shell: tar xzf /tmp/vmfusion/VMwareTools-*.tar.gz -C /tmp/vmfusion-archive
   changed_when: true
   tags: ['skip_ansible_lint']
 
-- name: Run the VMware tools installer.
+- name: run the vmware tools installer
   command: /tmp/vmfusion-archive/vmware-tools-distrib/vmware-install.pl --default
   changed_when: true
 
-- name: Unmount VMware tools.
+- name: unmount vmware tools
   mount:
     name: /tmp/vmfusion
     src: /home/vagrant/linux.iso
     fstype: iso9660
     state: absent
 
-- name: Remove temporary directories for VMware tools.
+- name: remove temporary directories for vmware tools
   file:
     path: "/tmp/{{ item }}"
     state: absent
@@ -63,7 +63,7 @@
     - vmfusion
     - vmfusion-archive
 
-- name: Delete VMware Tools.
+- name: delete vmware tools
   file:
     path: /home/vagrant/linux.iso
     state: absent

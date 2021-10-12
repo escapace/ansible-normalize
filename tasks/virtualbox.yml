@@ -1,29 +1,33 @@
 ---
-- name: Get VirtualBox version.
-  command: cat /home/vagrant/.vbox_version
-  changed_when: false
-  register: virtualbox_version
 
-- name: Mount VirtualBox guest additions ISO.
+- name: mount virtualbox guest additions iso
   mount:
     name: /tmp/vbox
-    src: "/home/vagrant/VBoxGuestAdditions_{{ virtualbox_version.stdout }}.iso"
+    src: "/home/vagrant/VBoxGuestAdditions.iso"
     opts: loop
     state: mounted
     fstype: iso9660
 
-- name: Run VirtualBox guest additions installation.
+- name: run virtualbox guest additions installation
   command: sh /tmp/vbox/VBoxLinuxAdditions.run
   changed_when: true
 
-- name: Unmount VirtualBox guest additions ISO.
+- name: unmount virtualbox guest additions iso
   mount:
     name: /tmp/vbox
-    src: "/home/vagrant/VBoxGuestAdditions_{{ virtualbox_version.stdout }}.iso"
+    src: "/home/vagrant/VBoxGuestAdditions.iso"
     state: absent
     fstype: iso9660
 
-- name: Delete VirtualBox guest additions ISO.
+- name: delete virtualbox guest additions iso
   file:
-    path: "/home/vagrant/VBoxGuestAdditions_{{ virtualbox_version.stdout }}.iso"
+    path: "/home/vagrant/VBoxGuestAdditions.iso"
     state: absent
+
+- name: remove any remnants of virtualbox isos
+  shell: >
+    rm -rf VBoxGuestAdditions.iso VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?
+    warn=false
+  args:
+    chdir: "/home/vagrant"
+  tags: ['skip_ansible_lint']
