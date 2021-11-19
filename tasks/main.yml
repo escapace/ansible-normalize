@@ -4,7 +4,12 @@
   file:
     path: /.autorelabel
     state: absent
-    
+
+- name: remove /etc/motd.d/cockpit
+  file:
+    path: /etc/motd.d/cockpit
+    state: absent
+
 - name: remove old kernels
   shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
   args:
