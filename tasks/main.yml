@@ -10,6 +10,14 @@
     path: /etc/motd.d/cockpit
     state: absent
 
+- name: add /usr/local/bin to path
+  ansible.builtin.copy:
+    src: files/usr-local-bin.sh
+    dest: /etc/profile.d/usr-local-bin.sh
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: remove old kernels
   shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
   args:
