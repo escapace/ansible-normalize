@@ -15,3 +15,7 @@ galaxy_info:
 
   galaxy_tags:
   - escapace
+
+dependencies:
+  - { role: escapace.sudo }
+  - { role: escapace.epel }
