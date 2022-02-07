@@ -1,0 +1,20 @@
+---
+
+- name: install RPM-GPG-KEY-EPEL-8
+  rpm_key:
+    state: present
+    key: https://src.fedoraproject.org/rpms/fedora-repos/raw/rawhide/f/RPM-GPG-KEY-fedora-35-primary
+
+- name: install fedora gpg keys
+  dnf:
+    name: "https://download-ib01.fedoraproject.org/pub/fedora/linux/releases/35/Everything/{{ ansible_architecture }}/os/Packages/f/fedora-gpg-keys-35-1.noarch.rpm"
+    state: present
+
+- name: install fedora repos
+  template:
+    src:  "{{ item }}"
+    dest: "/etc/yum.repos.d/{{ item | basename | regex_replace('.j2$', '') }}"
+    mode: 0644
+  loop:
+    - 'fedora-updates.repo.j2'
+    - 'fedora.repo.j2'

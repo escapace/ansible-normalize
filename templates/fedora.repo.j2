@@ -1,0 +1,26 @@
+[fedora]
+name=Fedora 35 - $basearch
+#baseurl=http://download.example/pub/fedora/linux/releases/35/Everything/$basearch/os/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-35&arch=$basearch
+enabled=1
+countme=1
+metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-35-$basearch
+skip_if_unavailable=False
+priority=100
+
+[fedora-source]
+name=Fedora 35 - Source
+#baseurl=http://download.example/pub/fedora/linux/releases/35/Everything/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-source-35&arch=$basearch
+enabled=0
+metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-35-$basearch
+skip_if_unavailable=False
+priority=100
