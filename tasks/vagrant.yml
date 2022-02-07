@@ -22,7 +22,7 @@
       - dkms
       - elfutils-libelf-devel
       - gcc
-      - glibc-devel 
+      - glibc-devel
       - glibc-headers
       - kernel-devel
       - kernel-headers

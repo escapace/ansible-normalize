@@ -15,7 +15,7 @@
 
 - name: copy {{ normalize_username }} ssh authorized key(s)
   authorized_key:
-    exclusive: yes
+    exclusive: true
     user: "{{ normalize_username }}"
     state: present
     key: "{{ normalize_ssh_keys.stdout }}"
@@ -24,7 +24,7 @@
   group:
     name: screen
     state: present
-    system: yes
+    system: true
 
 # - name: disable services
 #   service:
