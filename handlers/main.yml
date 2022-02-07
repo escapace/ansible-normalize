@@ -16,7 +16,7 @@
     dest: /etc/fstab
     regexp: '(^.*)([0]+[\t ]*)$'
     replace: '\1 1'
-    backup: yes
+    backup: true
 
 - name: normalize update grub
   command: "{{item}}"
