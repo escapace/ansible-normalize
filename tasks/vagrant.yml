@@ -43,7 +43,12 @@
   when: normalize_virtualbox_check.stat.exists
 
 - name: check if vmware is running the guest vm
-  shell: "cat /proc/scsi/scsi | grep VMware"
+  shell: |
+    set -o pipefail
+    cat /proc/scsi/scsi | grep VMware
+  args:
+    executable: /bin/bash
+    warn: false
   changed_when: false
   failed_when: false
   register: normalize_vmware_check

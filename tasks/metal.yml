@@ -7,8 +7,11 @@
 #   when: provider == 'packet'
 
 - name: fetch ssh keys from packet metadata
-  shell: curl -sSL curl https://metadata.platformequinix.com/metadata | jq -r '.ssh_keys | .[] // empty'
+  shell: |
+    set -o pipefail
+    curl -sSL curl https://metadata.platformequinix.com/metadata | jq -r '.ssh_keys | .[] // empty'
   args:
+    executable: /bin/bash
     warn: false
   register: normalize_ssh_keys
   changed_when: false
