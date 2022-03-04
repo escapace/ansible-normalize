@@ -1,10 +1,18 @@
 ---
 
-- group: name={{ normalize_username }} state=present
-- user: name={{ normalize_username }} group={{ normalize_username }}
+- name: add group
+  group: name={{ normalize_username }} state=present
+
+- name: add user
+  user: name={{ normalize_username }} group={{ normalize_username }}
 
 - name: check groups
-  shell: /usr/bin/getent group | awk -F":" '{print $1}'
+  shell: |
+    set -o pipefail
+    /usr/bin/getent group | awk -F":" '{print $1}'
+  args:
+    executable: /bin/bash
+    warn: false
   register: normalize_groups
   changed_when: false
 

@@ -19,7 +19,7 @@
     backup: true
 
 - name: normalize update grub
-  command: "{{item}}"
+  command: "{{ item }}"
   with_items:
     - grub2-mkconfig -o /etc/grub2.cfg
 
