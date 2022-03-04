@@ -1,49 +1,11 @@
 ---
 
-- name: get the current kernel release
-  command: uname -r
-  changed_when: false
-  register: kernel_release
-
-- name: set the appropriate libselinux package
-  set_fact:
-    normalize_libselinux_package: python3-libselinux
-  when: ansible_distribution_major_version == '8'
-
-- name: ensure necessary packages are installed.
-  yum:
-    name:
-      - "kernel-devel-{{ kernel_release.stdout }}"
-      - "{{ normalize_libselinux_package }}"
-      - binutils
-      - bzip2
-      - cifs-utils
-      - cpp
-      - dkms
-      - elfutils-libelf-devel
-      - gcc
-      - glibc-devel
-      - glibc-headers
-      - kernel-devel
-      - kernel-headers
-      - libgomp
-      - make
-      - patch
-      - perl
-      - tar
-      - wget
-    state: present
-
 - name: fix slow dns
   lineinfile:
     dest: /etc/sysconfig/network
     regexp: '^RES_OPTIONS'
     line: 'RES_OPTIONS="single-request-reopen"'
     state: present
-
-- name: restart network service
-  service: name=network state=restarted
-  when: ansible_distribution_major_version < '8'
 
 - name: configure ssh daemon
   lineinfile:
@@ -75,45 +37,21 @@
 
 - name: check if virtualbox is running the guest vm
   stat: path=/home/vagrant/.vbox_version
-  register: virtualbox_check
+  register: normalize_virtualbox_check
+
+- include_tasks: virtualbox.yml
+  when: normalize_virtualbox_check.stat.exists
 
 - name: check if vmware is running the guest vm
   shell: "cat /proc/scsi/scsi | grep VMware"
   changed_when: false
   failed_when: false
-  register: vmware_check
-
-- include_tasks: virtualbox.yml
-  when: virtualbox_check.stat.exists
+  register: normalize_vmware_check
 
 - include_tasks: vmware.yml
-  when: vmware_check.rc == 0
-
-- name: remove unneeded packages
-  yum:
-    name:
-      - cpp
-      - kernel-devel
-      - kernel-headers
-    state: absent
-
-- name: clean up yum
-  command: >
-    yum clean all
-    warn=false
-  changed_when: true
+  when: normalize_vmware_check.rc == 0
 
 - name: remove redhat interface persistence
   command: >
     rm -f /etc/udev/rules.d/70-persistent-net.rules
     warn=false
-  tags: ['skip_ansible_lint']
-
-- name: remove redhat interface persistence
-  lineinfile:
-    dest: /etc/sysconfig/network-scripts/ifcfg-eth0
-    regexp: "{{ item }}"
-    state: absent
-  with_items:
-    - '^HWADDR'
-    - '^UUID'
