@@ -1,5 +1,34 @@
 ---
 
+- name: get the current kernel release
+  command: uname -r
+  changed_when: false
+  register: normalize_kernel_release
+
+- name: ensure necessary packages are installed.
+  yum:
+    name:
+      - "kernel-devel-{{ normalize_kernel_release.stdout }}"
+      - python3-libselinux
+      - binutils
+      - bzip2
+      - cifs-utils
+      - cpp
+      - dkms
+      - elfutils-libelf-devel
+      - gcc
+      - glibc-devel
+      - glibc-headers
+      - kernel-devel
+      - kernel-headers
+      - libgomp
+      - make
+      - patch
+      - perl
+      - tar
+      - wget
+    state: present
+
 - name: mount virtualbox guest additions iso
   mount:
     name: /tmp/vbox
@@ -30,4 +59,11 @@
     warn=false
   args:
     chdir: "/home/vagrant"
-  tags: ['skip_ansible_lint']
+
+- name: remove unneeded packages
+  dnf:
+    name:
+      - cpp
+      - kernel-devel
+      - kernel-headers
+    state: absent
