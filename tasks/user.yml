@@ -3,8 +3,16 @@
 - name: add group
   group: name={{ normalize_username }} state=present
 
-- name: add user
+- name: add user without password
   user: name={{ normalize_username }} group={{ normalize_username }}
+  when: normalize_password is not defined
+
+- name: add user with password
+  user:
+    name={{ normalize_username }}
+    group={{ normalize_username }}
+    password={{ normalize_password | password_hash('sha512') }}
+  when: normalize_password is defined
 
 - name: check groups
   shell: |
