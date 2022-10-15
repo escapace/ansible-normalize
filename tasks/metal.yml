@@ -106,5 +106,5 @@
 #   set_fact:
 #     lvm_physical_device: "/dev/mapper/{{ normalize_packet_volume_name.stdout }}"
 
-# - include_tasks: packet-type0.yml
+# - ansible.builtin.include_tasks: packet-type0.yml
 #   when: packet_plan == "baremetal_0"

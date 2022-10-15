@@ -39,7 +39,7 @@
   stat: path=/home/vagrant/.vbox_version
   register: normalize_virtualbox_check
 
-- include_tasks: virtualbox.yml
+- ansible.builtin.include_tasks: virtualbox.yml
   when: normalize_virtualbox_check.stat.exists
 
 - name: check if vmware is running the guest vm
@@ -53,7 +53,7 @@
   failed_when: false
   register: normalize_vmware_check
 
-- include_tasks: vmware.yml
+- ansible.builtin.include_tasks: vmware.yml
   when: normalize_vmware_check.rc == 0
 
 - name: remove redhat interface persistence
