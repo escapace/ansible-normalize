@@ -20,8 +20,6 @@
 
 - name: remove old kernels
   shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
-  args:
-    warn: false
   changed_when: false
 
 - ansible.builtin.include_tasks: user.yml

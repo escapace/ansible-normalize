@@ -14,13 +14,19 @@
     password={{ normalize_password | password_hash('sha512') }}
   when: normalize_password is defined
 
+- name: set authorized key
+  ansible.posix.authorized_key:
+    user: "{{ normalize_username }}"
+    state: present
+    key: "{{ normalize_key }}"
+  when: not((normalize_key is undefined) or (normalize_key is none) or (normalize_key | trim | length == 0))
+
 - name: check groups
   shell: |
     set -o pipefail
     /usr/bin/getent group | awk -F":" '{print $1}'
   args:
     executable: /bin/bash
-    warn: false
   register: normalize_groups
   changed_when: false
 
