@@ -48,7 +48,6 @@
     cat /proc/scsi/scsi | grep VMware
   args:
     executable: /bin/bash
-    warn: false
   changed_when: false
   failed_when: false
   register: normalize_vmware_check
@@ -59,4 +58,3 @@
 - name: remove redhat interface persistence
   command: >
     rm -f /etc/udev/rules.d/70-persistent-net.rules
-    warn=false

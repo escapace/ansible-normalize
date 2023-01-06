@@ -56,7 +56,6 @@
 - name: remove any remnants of virtualbox isos
   shell: >
     rm -rf VBoxGuestAdditions.iso VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?
-    warn=false
   args:
     chdir: "/home/vagrant"
 

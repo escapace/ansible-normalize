@@ -12,7 +12,6 @@
     curl -sSL curl https://metadata.platformequinix.com/metadata | jq -r '.ssh_keys | .[] // empty'
   args:
     executable: /bin/bash
-    warn: false
   register: normalize_ssh_keys
   changed_when: false
 
