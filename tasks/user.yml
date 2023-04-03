@@ -1,17 +1,21 @@
 ---
 
 - name: add group
-  group: name={{ normalize_username }} state=present
+  ansible.builtin.group:
+    name: "{{ normalize_username }}"
+    state: present
 
 - name: add user without password
-  user: name={{ normalize_username }} group={{ normalize_username }}
+  ansible.builtin.user:
+    name: "{{ normalize_username }}"
+    group: "{{ normalize_username }}"
   when: normalize_password is not defined
 
 - name: add user with password
-  user:
-    name={{ normalize_username }}
-    group={{ normalize_username }}
-    password={{ normalize_password | password_hash('sha512') }}
+  ansible.builtin.user:
+    name: "{{ normalize_username }}"
+    group: "{{ normalize_username }}"
+    password: "{{ normalize_password | password_hash('sha512') }}"
   when: normalize_password is defined
 
 - name: set authorized key
@@ -22,7 +26,7 @@
   when: not((normalize_key is undefined) or (normalize_key is none) or (normalize_key | trim | length == 0))
 
 - name: check groups
-  shell: |
+  ansible.builtin.shell: |
     set -o pipefail
     /usr/bin/getent group | awk -F":" '{print $1}'
   args:
@@ -31,14 +35,17 @@
   changed_when: false
 
 - name: add secondary groups
-  user: name={{ normalize_username }} groups={{ item }} append=true
+  ansible.builtin.user:
+    name: "{{ normalize_username }}"
+    groups: "{{ item }}"
+    append: true
   when: item in normalize_groups.stdout_lines
   with_items:
     - sudo
     - wheel
 
-- name: Allow {{ normalize_username }} to have passwordless sudo
-  lineinfile:
+- name: allow {{ normalize_username }} to have passwordless sudo
+  ansible.builtin.lineinfile:
     create: true
     dest: "/etc/sudoers.d/{{ normalize_username }}"
     state: present
