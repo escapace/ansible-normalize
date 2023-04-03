@@ -7,7 +7,7 @@
 #   when: provider == 'packet'
 
 - name: fetch ssh keys from packet metadata
-  shell: |
+  ansible.builtin.shell: |
     set -o pipefail
     curl -sSL curl https://metadata.platformequinix.com/metadata | jq -r '.ssh_keys | .[] // empty'
   args:
@@ -16,14 +16,14 @@
   changed_when: false
 
 - name: copy {{ normalize_username }} ssh authorized key(s)
-  authorized_key:
+  ansible.posix.authorized_key:
     exclusive: true
     user: "{{ normalize_username }}"
     state: present
     key: "{{ normalize_ssh_keys.stdout }}"
 
 - name: add screen group
-  group:
+  ansible.builtin.group:
     name: screen
     state: present
     system: true

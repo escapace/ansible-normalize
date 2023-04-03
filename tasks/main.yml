@@ -1,12 +1,12 @@
 ---
 
 - name: remove autorelabel
-  file:
+  ansible.builtin.file:
     path: /.autorelabel
     state: absent
 
 - name: remove /etc/motd.d/cockpit
-  file:
+  ansible.builtin.file:
     path: /etc/motd.d/cockpit
     state: absent
 
@@ -19,7 +19,7 @@
     mode: '0644'
 
 - name: remove old kernels
-  shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
+  ansible.builtin.shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
   changed_when: false
 
 - ansible.builtin.include_tasks: user.yml
@@ -40,4 +40,4 @@
   when: provider is defined and provider == "vagrant"
 
 - name: flush handlers
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers

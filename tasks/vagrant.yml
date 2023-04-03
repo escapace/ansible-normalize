@@ -1,14 +1,14 @@
 ---
 
 - name: fix slow dns
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/sysconfig/network
     regexp: '^RES_OPTIONS'
     line: 'RES_OPTIONS="single-request-reopen"'
     state: present
 
 - name: configure ssh daemon
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
@@ -20,7 +20,7 @@
       line: 'GSSAPIAuthentication no'
 
 - name: configure vagrant .ssh directory
-  file:
+  ansible.builtin.file:
     path: /home/vagrant/.ssh
     state: directory
     owner: vagrant
@@ -28,7 +28,7 @@
     mode: 0700
 
 - name: get vagrant's public key
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub
     dest: /home/vagrant/.ssh/authorized_keys
     owner: vagrant
@@ -36,14 +36,15 @@
     mode: 0600
 
 - name: check if virtualbox is running the guest vm
-  stat: path=/home/vagrant/.vbox_version
+  ansible.builtin.stat:
+    path: /home/vagrant/.vbox_version
   register: normalize_virtualbox_check
 
 - ansible.builtin.include_tasks: virtualbox.yml
   when: normalize_virtualbox_check.stat.exists
 
 - name: check if vmware is running the guest vm
-  shell: |
+  ansible.builtin.shell: |
     set -o pipefail
     cat /proc/scsi/scsi | grep VMware
   args:
@@ -56,5 +57,5 @@
   when: normalize_vmware_check.rc == 0
 
 - name: remove redhat interface persistence
-  command: >
+  ansible.builtin.command: >
     rm -f /etc/udev/rules.d/70-persistent-net.rules

@@ -1,12 +1,12 @@
 ---
 
 - name: get the current kernel release
-  command: uname -r
+  ansible.builtin.command: uname -r
   changed_when: false
   register: normalize_kernel_release
 
 - name: ensure necessary packages are installed.
-  yum:
+  ansible.builtin.dnf:
     name:
       - "kernel-devel-{{ normalize_kernel_release.stdout }}"
       - python3-libselinux
@@ -30,7 +30,7 @@
     state: present
 
 - name: mount virtualbox guest additions iso
-  mount:
+  ansible.posix.mount:
     name: /tmp/vbox
     src: "/home/vagrant/VBoxGuestAdditions.iso"
     opts: loop
@@ -38,29 +38,29 @@
     fstype: iso9660
 
 - name: run virtualbox guest additions installation
-  command: sh /tmp/vbox/VBoxLinuxAdditions.run
+  ansible.builtin.command: sh /tmp/vbox/VBoxLinuxAdditions.run
   changed_when: true
 
 - name: unmount virtualbox guest additions iso
-  mount:
+  ansible.posix.mount:
     name: /tmp/vbox
     src: "/home/vagrant/VBoxGuestAdditions.iso"
     state: absent
     fstype: iso9660
 
 - name: delete virtualbox guest additions iso
-  file:
+  ansible.builtin.file:
     path: "/home/vagrant/VBoxGuestAdditions.iso"
     state: absent
 
 - name: remove any remnants of virtualbox isos
-  shell: >
+  ansible.builtin.shell: >
     rm -rf VBoxGuestAdditions.iso VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?
   args:
     chdir: "/home/vagrant"
 
 - name: remove unneeded packages
-  dnf:
+  ansible.builtin.dnf:
     name:
       - cpp
       - kernel-devel
