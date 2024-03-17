@@ -1,28 +1,27 @@
 ---
-
 - name: normalize remove skipfsck
-  replace:
+  ansible.builtin.replace:
     dest: /boot/grub/grub.cfg
-    regexp: '([\t ]+rd\.skipfsck)'
-    replace: ''
+    regexp: ([\t ]+rd\.skipfsck)
+    replace: ""
 
 - name: normalize remove fastboot
-  file:
+  ansible.builtin.file:
     path: /fastboot
     state: absent
 
 - name: normalize enable fstab check
-  replace:
+  ansible.builtin.replace:
     dest: /etc/fstab
-    regexp: '(^.*)([0]+[\t ]*)$'
-    replace: '\1 1'
+    regexp: (^.*)([0]+[\t ]*)$
+    replace: \1 1
     backup: true
 
 - name: normalize update grub
-  command: "{{ item }}"
+  ansible.builtin.command: "{{ item }}"
   with_items:
     - grub2-mkconfig -o /etc/grub2.cfg
 
 - name: normalize reboot needed
-  reboot:
+  ansible.builtin.reboot:
     post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"

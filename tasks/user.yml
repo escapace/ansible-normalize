@@ -1,5 +1,4 @@
 ---
-
 - name: add group
   ansible.builtin.group:
     name: "{{ normalize_username }}"
@@ -47,8 +46,8 @@
 - name: allow {{ normalize_username }} to have passwordless sudo
   ansible.builtin.lineinfile:
     create: true
-    dest: "/etc/sudoers.d/{{ normalize_username }}"
+    dest: /etc/sudoers.d/{{ normalize_username }}
     state: present
-    regexp: '^{{ normalize_username }}'
-    line: '{{ normalize_username }} ALL=(ALL) NOPASSWD: ALL'
-    mode: 0640
+    regexp: ^{{ normalize_username }}
+    line: "{{ normalize_username }} ALL=(ALL) NOPASSWD: ALL"
+    mode: "0640"
