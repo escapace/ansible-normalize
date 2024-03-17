@@ -26,7 +26,6 @@
     name: screen
     state: present
     system: true
-
 # - name: disable services
 #   service:
 #     name: "{{ item }}"
