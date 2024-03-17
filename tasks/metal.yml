@@ -1,5 +1,4 @@
 ---
-
 # - name: remove packet mirror
 #   file:
 #     path: /etc/yum.repos.d/packet.repo

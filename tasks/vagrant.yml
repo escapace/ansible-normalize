@@ -1,10 +1,9 @@
 ---
-
 - name: fix slow dns
   ansible.builtin.lineinfile:
     dest: /etc/sysconfig/network
-    regexp: '^RES_OPTIONS'
-    line: 'RES_OPTIONS="single-request-reopen"'
+    regexp: ^RES_OPTIONS
+    line: RES_OPTIONS="single-request-reopen"
     state: present
 
 - name: configure ssh daemon
@@ -14,10 +13,10 @@
     line: "{{ item.line }}"
     state: present
   with_items:
-    - regexp: '^UseDNS'
-      line: 'UseDNS no'
-    - regexp: '^GSSAPIAuthentication'
-      line: 'GSSAPIAuthentication no'
+    - regexp: ^UseDNS
+      line: UseDNS no
+    - regexp: ^GSSAPIAuthentication
+      line: GSSAPIAuthentication no
 
 - name: configure vagrant .ssh directory
   ansible.builtin.file:
@@ -25,7 +24,7 @@
     state: directory
     owner: vagrant
     group: vagrant
-    mode: 0700
+    mode: "0700"
 
 - name: get vagrant's public key
   ansible.builtin.get_url:
@@ -33,7 +32,7 @@
     dest: /home/vagrant/.ssh/authorized_keys
     owner: vagrant
     group: vagrant
-    mode: 0600
+    mode: "0600"
 
 - name: check if virtualbox is running the guest vm
   ansible.builtin.stat:

@@ -1,5 +1,4 @@
 ---
-
 - name: remove autorelabel
   ansible.builtin.file:
     path: /.autorelabel
@@ -16,10 +15,10 @@
     dest: /etc/profile.d/usr-local-bin.sh
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: remove old kernels
-  ansible.builtin.shell: "dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)"
+  ansible.builtin.shell: dnf remove -y $(dnf repoquery --installonly --latest-limit=-2 -q)
   changed_when: false
 
 - ansible.builtin.include_tasks: user.yml
