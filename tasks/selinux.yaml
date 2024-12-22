@@ -1,0 +1,48 @@
+---
+- name: install selinux dependencies
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - libselinux
+      - libselinux-utils
+      - policycoreutils
+      - python3-policycoreutils
+      - policycoreutils-python-utils
+      - selinux-policy-targeted
+      - python3-libselinux
+
+- name: enforce selinux
+  ansible.posix.selinux:
+    policy: targeted
+    state: "{{ normalize_selinux_state }}"
+  notify:
+    - normalize autorelabel
+    - normalize reboot needed
+
+- name: enforce selinux
+  ansible.builtin.template:
+    src: templates/selinux_config
+    dest: /etc/selinux/config
+    owner: root
+    group: root
+    mode: "0644"
+    seuser: system_u
+    serole: object_r
+    setype: selinux_config_t
+    selevel: s0
+
+- name: symlink /etc/sysconfig/selinux
+  ansible.builtin.file:
+    force: true
+    state: link
+    src: /etc/selinux/config
+    dest: /etc/sysconfig/selinux
+    owner: root
+    group: root
+    mode: "0644"
+    seuser: system_u
+    serole: object_r
+    setype: selinux_config_t
+    selevel: s0

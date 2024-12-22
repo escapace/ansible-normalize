@@ -1,0 +1,28 @@
+---
+- name: install common dependencies
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - jq
+      - gcc
+      - python3-pip
+      - libffi-devel
+      - openssl-devel
+      - python3
+      - python3-devel
+      - yum-utils
+
+- name: uninstall unnecessary packages
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+      - cockpit
+
+- name: clean up dnf
+  ansible.builtin.command: dnf clean all
+  changed_when: false

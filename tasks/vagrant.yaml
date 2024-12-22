@@ -1,0 +1,29 @@
+---
+
+- name: disable ssh reverse dns lookup
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "(.*UseDNS.*)"
+    line: "UseDNS no"
+    backrefs: true
+    state: present
+    create: false
+
+- name: fix slow dns
+  ansible.builtin.lineinfile:
+    dest: /etc/sysconfig/network
+    regexp: ^RES_OPTIONS
+    line: RES_OPTIONS="single-request-reopen"
+    state: present
+
+- name: configure ssh daemon
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+    - regexp: ^UseDNS
+      line: UseDNS no
+    - regexp: ^GSSAPIAuthentication
+      line: GSSAPIAuthentication no

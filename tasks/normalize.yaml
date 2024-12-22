@@ -1,0 +1,15 @@
+---
+- ansible.builtin.include_tasks: dependencies.yaml
+- ansible.builtin.include_tasks: selinux.yaml
+- ansible.builtin.include_tasks: upgrade.yaml
+- ansible.builtin.include_tasks: user.yaml
+- ansible.builtin.include_tasks: miscellaneous.yaml
+
+- ansible.builtin.include_tasks: vagrant-vmware.yaml
+  when: provider is defined and provider == "vagrant_vmware"
+
+- ansible.builtin.include_tasks: vagrant-qemu.yaml
+  when: provider is defined and provider == "vagrant_qemu"
+
+- name: flush handlers
+  ansible.builtin.meta: flush_handlers

@@ -1,0 +1,14 @@
+---
+
+- name: upgrade kernel package
+  ansible.builtin.dnf:
+    name: kernel
+    state: latest
+  notify:
+    - normalize reboot needed
+
+- name: upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    exclude: kernel

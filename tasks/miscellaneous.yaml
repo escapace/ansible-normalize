@@ -1,0 +1,45 @@
+---
+
+- name: increase yum timeouts
+  ansible.builtin.shell: dnf-config-manager --save --setopt {{ item.option }}={{ item.value }}
+  changed_when: false
+  with_items:
+    - option: timeout
+      value: 60.0
+    - option: retries
+      value: 30
+
+- name: ensure lock directory is created
+  ansible.builtin.file:
+    path: /var/lock/subsys
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: ensure that postfix is disabled
+  ansible.builtin.service:
+    name: postfix
+    enabled: false
+    state: stopped
+  ignore_errors: true
+
+- name: ensure that kdump is disabled
+  ansible.builtin.service:
+    name: kdump
+    enabled: false
+    state: stopped
+  ignore_errors: true
+
+- name: remove /etc/motd.d/cockpit
+  ansible.builtin.file:
+    path: /etc/motd.d/cockpit
+    state: absent
+
+- name: add /usr/local/bin to path
+  ansible.builtin.copy:
+    src: files/usr-local-bin.sh
+    dest: /etc/profile.d/usr-local-bin.sh
+    owner: root
+    group: root
+    mode: "0644"
