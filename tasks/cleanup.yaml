@@ -1,5 +1,4 @@
 ---
-
 - name: remove autorelabel
   ansible.builtin.file:
     path: /.autorelabel
@@ -20,18 +19,18 @@
 - name: find dnf history files
   ansible.builtin.find:
     paths: /var/lib/dnf
-    patterns: "history*"
+    patterns: 'history*'
   register: normalize_dnf_history
   tags:
     - normalize-cleanup
 
 - name: reset dnf history
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: '{{ item.path }}'
     state: absent
-  loop: "{{ normalize_dnf_history.files }}"
+  loop: '{{ normalize_dnf_history.files }}'
   loop_control:
-    label: "{{ item.path }}"
+    label: '{{ item.path }}'
   tags:
     - normalize-cleanup
 
@@ -48,15 +47,18 @@
 
 - name: remove temporary files
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: '{{ item.path }}'
     state: absent
-  loop: "{{ normalize_tmp_files.files }}"
+  loop: '{{ normalize_tmp_files.files }}'
   loop_control:
-    label: "{{ item.path }}"
+    label: '{{ item.path }}'
   tags:
     - normalize-cleanup
 
 - name: remove ssh host keys
+  when: normalize_remove_ssh_host_keys | bool
+  tags:
+    - normalize-cleanup
   block:
     - name: find ssh host keys
       ansible.builtin.find:
@@ -66,18 +68,15 @@
 
     - name: remove ssh host keys
       ansible.builtin.file:
-        path: "{{ item.path }}"
+        path: '{{ item.path }}'
         state: absent
-      loop: "{{ normalize_host_keys.files }}"
+      loop: '{{ normalize_host_keys.files }}'
       loop_control:
-        label: "{{ item.path }}"
-  when: normalize_remove_ssh_host_keys | bool
-  tags:
-    - normalize-cleanup
+        label: '{{ item.path }}'
 
 - name: remove kickstart files
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: '{{ item }}'
     state: absent
   loop:
     - /root/anaconda-ks.cfg
@@ -86,7 +85,7 @@
     - normalize-cleanup
 
 - name: truncate files
-  ansible.builtin.command: "truncate -s 0 {{ item }}"
+  ansible.builtin.command: 'truncate -s 0 {{ item }}'
   loop:
     - /etc/machine-id
     - /etc/resolv.conf
@@ -104,7 +103,7 @@
 
 - name: remove log folders.
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: '{{ item }}'
     state: absent
   loop:
     - /var/log/anaconda
@@ -129,11 +128,11 @@
 
 - name: remove log files
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: '{{ item.path }}'
     state: absent
-  loop: "{{ normalize_log_files.files }}"
+  loop: '{{ normalize_log_files.files }}'
   loop_control:
-    label: "{{ item.path }}"
+    label: '{{ item.path }}'
   tags:
     - normalize-cleanup
 
@@ -157,25 +156,25 @@
     - normalize-cleanup
 
 - name: wipe out swap data
-  block:
-    - name: get swap partition uuid
-      ansible.builtin.command: "blkid {{ normalize_swaps.stdout }} -s UUID -o value"
-      register: normalize_swap_blkid
-
-    - name: unmount swap partition
-      ansible.builtin.command: "swapoff {{ normalize_swaps.stdout }}"
-
-    - name: fill swap partition with zeroes
-      ansible.builtin.shell: "dd if=/dev/zero of={{ normalize_swaps.stdout }} bs=1M oflag=direct || /bin/true"
-
-    - name: format swap partition
-      ansible.builtin.command: "mkswap -U {{ normalize_swap_blkid.stdout }} -f {{ normalize_swaps.stdout }}"
-
-    - name: mount swap partition
-      ansible.builtin.command: "swapon {{ normalize_swaps.stdout }}"
   when: normalize_swaps.rc == 0
   tags:
     - normalize-cleanup
+  block:
+    - name: get swap partition uuid
+      ansible.builtin.command: 'blkid {{ normalize_swaps.stdout }} -s UUID -o value'
+      register: normalize_swap_blkid
+
+    - name: unmount swap partition
+      ansible.builtin.command: 'swapoff {{ normalize_swaps.stdout }}'
+
+    - name: fill swap partition with zeroes
+      ansible.builtin.shell: 'dd if=/dev/zero of={{ normalize_swaps.stdout }} bs=1M oflag=direct || /bin/true'
+
+    - name: format swap partition
+      ansible.builtin.command: 'mkswap -U {{ normalize_swap_blkid.stdout }} -f {{ normalize_swaps.stdout }}'
+
+    - name: mount swap partition
+      ansible.builtin.command: 'swapon {{ normalize_swaps.stdout }}'
 
 - name: sync disc
   ansible.builtin.command: sync
