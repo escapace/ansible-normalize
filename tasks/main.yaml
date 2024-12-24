@@ -3,7 +3,7 @@
 - name: check variables
   ansible.builtin.assert:
     that:
-      - normalize_username is defined and normalize_usernam is string
+      - normalize_username is defined and normalize_username is string
     quiet: true
 
 - ansible.builtin.include_tasks: normalize.yaml

@@ -1,0 +1,33 @@
+---
+- name: mask systemd-networkd-persistent-storage.service
+  ansible.builtin.systemd:
+    name: systemd-networkd-persistent-storage.service
+    masked: true
+
+- name: copy example network configuration to system configuration
+  ansible.builtin.copy:
+    src: /usr/lib/systemd/network/89-ethernet.network.example
+    dest: /etc/systemd/network/80-ethernet.network
+    remote_src: yes
+    mode: '0644'
+
+- name: create directory for systemd-networkd-wait-online override
+  ansible.builtin.file:
+    path: /etc/systemd/system/systemd-networkd-wait-online.service.d
+    state: directory
+    mode: '0755'
+
+- name: create override configuration for systemd-networkd-wait-online
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
+    dest: /etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf
+    mode: '0644'
+
+- name: create symbolic link for resolv.conf
+  ansible.builtin.file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link

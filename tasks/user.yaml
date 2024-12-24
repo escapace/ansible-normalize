@@ -24,6 +24,12 @@
     key: "{{ normalize_key }}"
   when: not((normalize_key is undefined) or (normalize_key is none) or (normalize_key | trim | length == 0))
 
+- name: remove user password
+  ansible.builtin.user:
+    name: "{{ normalize_username }}"
+    password: "*"
+  when: normalize_password is not defined
+
 - name: check groups
   ansible.builtin.shell: |
     set -o pipefail
