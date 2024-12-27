@@ -26,8 +26,8 @@
     dest: /etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf
     mode: '0644'
 
-- name: create symbolic link for resolv.conf
-  ansible.builtin.file:
-    src: /run/systemd/resolve/stub-resolv.conf
-    dest: /etc/resolv.conf
-    state: link
+# - name: create symbolic link for resolv.conf
+#   ansible.builtin.file:
+#     src: /run/systemd/resolve/stub-resolv.conf
+#     dest: /etc/resolv.conf
+#     state: link

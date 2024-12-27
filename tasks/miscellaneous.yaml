@@ -43,3 +43,11 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: remove extra sysconfig files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/sysconfig/network
+    - /etc/sysconfig/anaconda
