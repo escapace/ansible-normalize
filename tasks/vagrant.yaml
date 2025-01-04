@@ -9,13 +9,6 @@
     state: present
     create: false
 
-- name: fix slow dns
-  ansible.builtin.lineinfile:
-    dest: /etc/sysconfig/network
-    regexp: ^RES_OPTIONS
-    line: RES_OPTIONS="single-request-reopen"
-    state: present
-
 - name: configure ssh daemon
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
