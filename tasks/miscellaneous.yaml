@@ -1,6 +1,6 @@
 ---
 
-- name: increase yum timeouts
+- name: increase dnf timeouts
   ansible.builtin.shell: dnf config-manager --save --setopt {{ item.option }}={{ item.value }}
   changed_when: false
   with_items:
@@ -29,7 +29,19 @@
     name: kdump
     enabled: false
     state: stopped
+    masked: true
   ignore_errors: true
+
+- name: configure coredump.conf
+  ansible.builtin.copy:
+    dest: /etc/systemd/coredump.conf
+    content: |
+      [Coredump]
+      Storage=none
+      ProcessSizeMax=0
+    mode: "0644"
+    owner: root
+    group: root
 
 - name: remove /etc/motd.d/cockpit
   ansible.builtin.file:
@@ -51,3 +63,8 @@
   loop:
     - /etc/sysconfig/network
     - /etc/sysconfig/anaconda
+
+- name: mask debug-shell.service
+  ansible.builtin.systemd:
+    name: debug-shell.service
+    masked: true

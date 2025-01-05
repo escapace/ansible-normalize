@@ -4,6 +4,8 @@
 - ansible.builtin.include_tasks: upgrade.yaml
 - ansible.builtin.include_tasks: user.yaml
 - ansible.builtin.include_tasks: network.yaml
+- ansible.builtin.include_tasks: journald.yaml
+- ansible.builtin.include_tasks: tmp.yaml
 - ansible.builtin.include_tasks: miscellaneous.yaml
 
 - ansible.builtin.include_tasks: vagrant-vmware.yaml

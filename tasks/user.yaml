@@ -57,7 +57,14 @@
     regexp: ^{{ normalize_username }}
     line: "{{ normalize_username }} ALL=(ALL) NOPASSWD: ALL"
     mode: "0640"
+    validate: visudo -cf %s
 
 - name: import escapace.sudo role
   ansible.builtin.import_role:
     name: escapace.sudo
+
+- name: lock the root account
+  ansible.builtin.user:
+    name: root
+    password_lock: true
+  # no_log: true

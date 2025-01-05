@@ -1,0 +1,17 @@
+---
+- name: remove rsyslog
+  ansible.builtin.dnf:
+    name: rsyslog
+    state: absent
+
+- name: /etc/systemd/journald.conf
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf
+    content: |
+      [Journal]
+      Compress=yes
+      ForwardToSyslog=no
+      Storage=volatile
+    mode: "0644"
+    owner: root
+    group: root
