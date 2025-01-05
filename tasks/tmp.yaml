@@ -1,5 +1,4 @@
 ---
-
 - name: create directory /etc/systemd/system/tmp.mount.d
   ansible.builtin.file:
     path: /etc/systemd/system/tmp.mount.d

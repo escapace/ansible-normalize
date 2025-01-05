@@ -12,6 +12,6 @@
       Compress=yes
       ForwardToSyslog=no
       Storage=volatile
-    mode: "0644"
+    mode: '0644'
     owner: root
     group: root
