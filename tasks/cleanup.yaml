@@ -19,18 +19,18 @@
 - name: find dnf history files
   ansible.builtin.find:
     paths: /var/lib/dnf
-    patterns: 'history*'
+    patterns: "history*"
   register: normalize_dnf_history
   tags:
     - normalize-cleanup
 
 - name: reset dnf history
   ansible.builtin.file:
-    path: '{{ item.path }}'
+    path: "{{ item.path }}"
     state: absent
-  loop: '{{ normalize_dnf_history.files }}'
+  loop: "{{ normalize_dnf_history.files }}"
   loop_control:
-    label: '{{ item.path }}'
+    label: "{{ item.path }}"
   tags:
     - normalize-cleanup
 
@@ -40,18 +40,18 @@
     paths:
       - /tmp
       - /var/tmp
-    patterns: '*'
+    patterns: "*"
   register: normalize_tmp_files
   tags:
     - normalize-cleanup
 
 - name: remove temporary files
   ansible.builtin.file:
-    path: '{{ item.path }}'
+    path: "{{ item.path }}"
     state: absent
-  loop: '{{ normalize_tmp_files.files }}'
+  loop: "{{ normalize_tmp_files.files }}"
   loop_control:
-    label: '{{ item.path }}'
+    label: "{{ item.path }}"
   tags:
     - normalize-cleanup
 
@@ -63,20 +63,20 @@
     - name: find ssh host keys
       ansible.builtin.find:
         paths: /etc/ssh
-        patterns: '*host*key*'
+        patterns: "*host*key*"
       register: normalize_host_keys
 
     - name: remove ssh host keys
       ansible.builtin.file:
-        path: '{{ item.path }}'
+        path: "{{ item.path }}"
         state: absent
-      loop: '{{ normalize_host_keys.files }}'
+      loop: "{{ normalize_host_keys.files }}"
       loop_control:
-        label: '{{ item.path }}'
+        label: "{{ item.path }}"
 
 - name: remove kickstart files
   ansible.builtin.file:
-    path: '{{ item }}'
+    path: "{{ item }}"
     state: absent
   loop:
     - /root/anaconda-ks.cfg
@@ -85,7 +85,7 @@
     - normalize-cleanup
 
 - name: truncate files
-  ansible.builtin.command: 'truncate -s 0 {{ item }}'
+  ansible.builtin.command: "truncate -s 0 {{ item }}"
   loop:
     - /etc/machine-id
     - /etc/resolv.conf
@@ -103,7 +103,7 @@
 
 - name: remove log folders.
   ansible.builtin.file:
-    path: '{{ item }}'
+    path: "{{ item }}"
     state: absent
   loop:
     - /var/log/anaconda
@@ -121,18 +121,18 @@
     paths:
       - /var/log
       - /var/log/sssd
-    patterns: '*log,*.old,*.log.gz,*.[0-9],*.gz,*-????????'
+    patterns: "*log,*.old,*.log.gz,*.[0-9],*.gz,*-????????"
   register: normalize_log_files
   tags:
     - normalize-cleanup
 
 - name: remove log files
   ansible.builtin.file:
-    path: '{{ item.path }}'
+    path: "{{ item.path }}"
     state: absent
-  loop: '{{ normalize_log_files.files }}'
+  loop: "{{ normalize_log_files.files }}"
   loop_control:
-    label: '{{ item.path }}'
+    label: "{{ item.path }}"
   tags:
     - normalize-cleanup
 
@@ -161,20 +161,20 @@
     - normalize-cleanup
   block:
     - name: get swap partition uuid
-      ansible.builtin.command: 'blkid {{ normalize_swaps.stdout }} -s UUID -o value'
+      ansible.builtin.command: "blkid {{ normalize_swaps.stdout }} -s UUID -o value"
       register: normalize_swap_blkid
 
     - name: unmount swap partition
-      ansible.builtin.command: 'swapoff {{ normalize_swaps.stdout }}'
+      ansible.builtin.command: "swapoff {{ normalize_swaps.stdout }}"
 
     - name: fill swap partition with zeroes
-      ansible.builtin.shell: 'dd if=/dev/zero of={{ normalize_swaps.stdout }} bs=1M oflag=direct || /bin/true'
+      ansible.builtin.shell: "dd if=/dev/zero of={{ normalize_swaps.stdout }} bs=1M oflag=direct || /bin/true"
 
     - name: format swap partition
-      ansible.builtin.command: 'mkswap -U {{ normalize_swap_blkid.stdout }} -f {{ normalize_swaps.stdout }}'
+      ansible.builtin.command: "mkswap -U {{ normalize_swap_blkid.stdout }} -f {{ normalize_swaps.stdout }}"
 
     - name: mount swap partition
-      ansible.builtin.command: 'swapon {{ normalize_swaps.stdout }}'
+      ansible.builtin.command: "swapon {{ normalize_swaps.stdout }}"
 
 - name: sync disc
   ansible.builtin.command: sync

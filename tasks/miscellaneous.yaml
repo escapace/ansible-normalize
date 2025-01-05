@@ -14,7 +14,7 @@
     state: directory
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
 
 - name: ensure that postfix is disabled
   ansible.builtin.service:
@@ -38,7 +38,7 @@
       [Coredump]
       Storage=none
       ProcessSizeMax=0
-    mode: '0644'
+    mode: "0644"
     owner: root
     group: root
 
@@ -53,11 +53,11 @@
     dest: /etc/profile.d/usr-local-bin.sh
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: remove extra sysconfig files
   ansible.builtin.file:
-    path: '{{ item }}'
+    path: "{{ item }}"
     state: absent
   loop:
     - /etc/sysconfig/network

@@ -1,7 +1,7 @@
 ---
 - name: normalize reboot needed
   ansible.builtin.reboot:
-    post_reboot_delay: '{{ normalize_reboot_delay | default(100) }}'
+    post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"
   when: provider is not defined or (provider is defined and provider != "ec2")
 
 - name: normalize autorelabel
@@ -10,4 +10,4 @@
     owner: root
     group: root
     state: touch
-    mode: '0755'
+    mode: "0755"

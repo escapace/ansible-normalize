@@ -11,4 +11,4 @@ normalize_remove_ssh_host_keys: true
 # physical RAM. The default, when neither size nor nr_blocks is specified, is size=50%.
 #
 # If a percentage (%) is used in the size, it must be escaped as "%%" according to systemd rules.
-normalize_tmp_mount_size: '50%%'
+normalize_tmp_mount_size: "50%%"

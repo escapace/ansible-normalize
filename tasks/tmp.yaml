@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: /etc/systemd/system/tmp.mount.d
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: root
     group: root
 
@@ -11,6 +11,6 @@
   ansible.builtin.template:
     src: templates/tmp-mount-override.conf
     dest: /etc/systemd/system/tmp.mount.d/override.conf
-    mode: '0644'
+    mode: "0644"
     owner: root
     group: root

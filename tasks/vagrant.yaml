@@ -2,8 +2,8 @@
 - name: disable ssh reverse dns lookup
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '(.*UseDNS.*)'
-    line: 'UseDNS no'
+    regexp: "(.*UseDNS.*)"
+    line: "UseDNS no"
     backrefs: true
     state: present
     create: false
@@ -11,8 +11,8 @@
 - name: configure ssh daemon
   ansible.builtin.lineinfile:
     dest: /etc/ssh/sshd_config
-    regexp: '{{ item.regexp }}'
-    line: '{{ item.line }}'
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
     state: present
   with_items:
     - regexp: ^UseDNS
