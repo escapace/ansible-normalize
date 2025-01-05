@@ -8,7 +8,7 @@
   ansible.builtin.copy:
     src: /usr/lib/systemd/network/89-ethernet.network.example
     dest: /etc/systemd/network/80-ethernet.network
-    remote_src: yes
+    remote_src: true
     mode: '0644'
 
 - name: create directory for systemd-networkd-wait-online override
