@@ -1,11 +1,10 @@
 ---
-
 - name: increase dnf timeouts
   ansible.builtin.shell: dnf config-manager --save --setopt {{ item.option }}={{ item.value }}
   changed_when: false
   with_items:
     - option: timeout
-      value: 60.0
+      value: 60
     - option: retries
       value: 30
 
@@ -15,7 +14,7 @@
     state: directory
     owner: root
     group: root
-    mode: "0755"
+    mode: '0755'
 
 - name: ensure that postfix is disabled
   ansible.builtin.service:
@@ -54,11 +53,11 @@
     dest: /etc/profile.d/usr-local-bin.sh
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
 
 - name: remove extra sysconfig files
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: '{{ item }}'
     state: absent
   loop:
     - /etc/sysconfig/network

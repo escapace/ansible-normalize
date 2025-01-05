@@ -1,5 +1,4 @@
 ---
-
 - ansible.builtin.include_tasks: vagrant.yaml
 
 - name: install open-vm-tools
@@ -11,7 +10,6 @@
   ansible.builtin.service:
     name: vmtoolsd.service
     enabled: true
-
 # - name: remove redhat interface persistence
 #   ansible.builtin.command: >
 #     rm -f /etc/udev/rules.d/70-persistent-net.rules

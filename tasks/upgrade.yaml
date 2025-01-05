@@ -1,5 +1,4 @@
 ---
-
 - name: upgrade kernel package
   ansible.builtin.dnf:
     name: kernel
@@ -9,6 +8,6 @@
 
 - name: upgrade all packages
   ansible.builtin.dnf:
-    name: "*"
+    name: '*'
     state: latest
     exclude: kernel

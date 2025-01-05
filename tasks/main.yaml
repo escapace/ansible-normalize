@@ -1,5 +1,4 @@
 ---
-
 - name: check variables
   ansible.builtin.assert:
     that:

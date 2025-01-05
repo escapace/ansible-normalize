@@ -1,7 +1,7 @@
 ---
 - name: install selinux dependencies
   ansible.builtin.dnf:
-    name: "{{ packages }}"
+    name: '{{ packages }}'
     state: present
   vars:
     packages:
@@ -16,7 +16,7 @@
 - name: enforce selinux
   ansible.posix.selinux:
     policy: targeted
-    state: "{{ normalize_selinux_state }}"
+    state: '{{ normalize_selinux_state }}'
   notify:
     - normalize autorelabel
     - normalize reboot needed
@@ -27,7 +27,7 @@
     dest: /etc/selinux/config
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     seuser: system_u
     serole: object_r
     setype: selinux_config_t
@@ -41,7 +41,7 @@
     dest: /etc/sysconfig/selinux
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     seuser: system_u
     serole: object_r
     setype: selinux_config_t
