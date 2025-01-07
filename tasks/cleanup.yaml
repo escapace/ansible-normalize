@@ -98,6 +98,7 @@
     - /var/log/messages
     - /var/log/secure
     - /var/log/spooler
+  ignore_errors: true
   tags:
     - normalize-cleanup
 

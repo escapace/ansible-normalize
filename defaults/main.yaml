@@ -1,5 +1,5 @@
 ---
-normalize_reboot_delay: 100
+normalize_reboot_delay: 180
 normalize_selinux_state: enforcing
 normalize_remove_ssh_host_keys: true
 
