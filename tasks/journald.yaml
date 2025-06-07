@@ -1,8 +1,23 @@
 ---
+- name: install logrotate
+  ansible.builtin.dnf:
+    name: logrotate
+    state: present
+
+- name: enable logrotate
+  ansible.builtin.systemd:
+    name: logrotate
+    enabled: true
+
 - name: remove rsyslog
   ansible.builtin.dnf:
     name: rsyslog
     state: absent
+
+- name: mask rsyslog
+  ansible.builtin.systemd:
+    name: rsyslog
+    masked: true
 
 - name: /etc/systemd/journald.conf
   ansible.builtin.copy:
