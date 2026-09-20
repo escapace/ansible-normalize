@@ -3,6 +3,11 @@ normalize_reboot_delay: 180
 normalize_selinux_state: enforcing
 normalize_remove_ssh_host_keys: true
 
+# Preserve historical key-only defaults unless a deployment explicitly keeps
+# existing local passwords for console recovery.
+normalize_lock_user_password_when_undefined: true
+normalize_lock_root_password: true
+
 # https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt
 #
 # The limit of allocated bytes for this tmpfs instance. The default is half of your physical RAM

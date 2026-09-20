@@ -15,9 +15,11 @@
     state: absent
 
 - name: mask rsyslog
-  ansible.builtin.systemd:
-    name: rsyslog
-    masked: true
+  ansible.builtin.file:
+    src: /dev/null
+    dest: /etc/systemd/system/rsyslog.service
+    state: link
+    force: true
 
 - name: /etc/systemd/journald.conf
   ansible.builtin.copy:

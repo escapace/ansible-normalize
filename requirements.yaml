@@ -1,0 +1,16 @@
+---
+collections:
+  - name: ansible.posix
+
+roles:
+  - name: escapace.epel
+    src: https://github.com/escapace/ansible-epel
+    version: origin/trunk
+
+  - name: escapace.escapace_releases
+    src: https://github.com/escapace/ansible-escapace_releases
+    version: origin/trunk
+
+  - name: escapace.sudo
+    src: https://github.com/escapace/ansible-sudo
+    version: origin/trunk

@@ -28,7 +28,9 @@
   ansible.builtin.user:
     name: "{{ normalize_username }}"
     password: "*"
-  when: normalize_password is not defined
+  when:
+    - normalize_password is not defined
+    - normalize_lock_user_password_when_undefined | bool
 
 - name: check groups
   ansible.builtin.shell: |
@@ -49,6 +51,10 @@
     - sudo
     - wheel
 
+- name: import escapace.sudo role
+  ansible.builtin.import_role:
+    name: escapace.sudo
+
 - name: allow {{ normalize_username }} to have passwordless sudo
   ansible.builtin.lineinfile:
     create: true
@@ -59,12 +65,9 @@
     mode: "0640"
     validate: visudo -cf %s
 
-- name: import escapace.sudo role
-  ansible.builtin.import_role:
-    name: escapace.sudo
-
 - name: lock the root account
   ansible.builtin.user:
     name: root
     password_lock: true
+  when: normalize_lock_root_password | bool
   # no_log: true

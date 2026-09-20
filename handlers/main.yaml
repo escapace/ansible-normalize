@@ -2,7 +2,9 @@
 - name: normalize reboot needed
   ansible.builtin.reboot:
     post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"
-  when: provider is not defined or (provider is defined and provider != "ec2")
+  when:
+    - provider is not defined or (provider is defined and provider != "ec2")
+    - ansible_facts["virtualization_type"] != "docker"
 
 - name: normalize autorelabel
   ansible.builtin.file:

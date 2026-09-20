@@ -1,4 +1,9 @@
 ---
+- name: install systemd-networkd
+  ansible.builtin.dnf:
+    name: systemd-networkd
+    state: present
+
 - name: mask systemd-networkd-persistent-storage.service
   ansible.builtin.systemd:
     name: systemd-networkd-persistent-storage.service
@@ -25,6 +30,27 @@
       ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
     dest: /etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf
     mode: "0644"
+
+- name: check whether NetworkManager is installed
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system/NetworkManager.service
+  register: normalize_network_manager_unit
+
+- name: gather network service facts
+  ansible.builtin.service_facts:
+
+- name: enable systemd-networkd
+  ansible.builtin.systemd:
+    name: systemd-networkd.service
+    enabled: true
+  notify: normalize reboot needed
+
+- name: disable NetworkManager
+  ansible.builtin.systemd:
+    name: NetworkManager.service
+    enabled: false
+  when: normalize_network_manager_unit.stat.exists
+  notify: normalize reboot needed
 # - name: create symbolic link for resolv.conf
 #   ansible.builtin.file:
 #     src: /run/systemd/resolve/stub-resolv.conf

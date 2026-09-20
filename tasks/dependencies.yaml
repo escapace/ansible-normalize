@@ -7,6 +7,7 @@
   vars:
     packages:
       - dnf-plugins-core
+      - glibc-langpack-en
       - jq
       - kitty-terminfo
       - ghostty-terminfo
