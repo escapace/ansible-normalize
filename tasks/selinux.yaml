@@ -17,6 +17,9 @@
   ansible.posix.selinux:
     policy: targeted
     state: "{{ normalize_selinux_state }}"
+  register: normalize_selinux_result
+  # A pending boot transition still needs handlers when no new configuration changes.
+  changed_when: normalize_selinux_result.changed or (normalize_selinux_result.reboot_required | default(false))
   notify:
     - normalize autorelabel
     - normalize reboot needed

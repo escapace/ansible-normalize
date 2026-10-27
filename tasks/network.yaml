@@ -15,6 +15,7 @@
     dest: /etc/systemd/network/80-ethernet.network
     remote_src: true
     mode: "0644"
+  notify: normalize reboot needed
 
 - name: create directory for systemd-networkd-wait-online override
   ansible.builtin.file:
@@ -30,6 +31,7 @@
       ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
     dest: /etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf
     mode: "0644"
+  notify: normalize reboot needed
 
 - name: check whether NetworkManager is installed
   ansible.builtin.stat:

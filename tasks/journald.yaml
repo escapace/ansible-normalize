@@ -4,9 +4,9 @@
     name: logrotate
     state: present
 
-- name: enable logrotate
-  ansible.builtin.systemd:
-    name: logrotate
+- name: enable logrotate timer
+  ansible.builtin.systemd_service:
+    name: logrotate.timer
     enabled: true
 
 - name: remove rsyslog
@@ -21,6 +21,29 @@
     state: link
     force: true
 
+- name: find retired rsyslog log files
+  ansible.builtin.find:
+    paths: /var/log
+    file_type: file
+    use_regex: true
+    # Stock rsyslog destinations and their numbered or date-stamped rotations only.
+    patterns:
+      - '^(cron|maillog|messages|secure|spooler)(-[0-9]{8}|\.[0-9]+)?(\.gz)?$'
+  register: normalize_rsyslog_log_files
+
+- name: remove retired rsyslog log files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ normalize_rsyslog_log_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: remove retired rsyslog state
+  ansible.builtin.file:
+    path: /var/lib/rsyslog
+    state: absent
+
 - name: /etc/systemd/journald.conf
   ansible.builtin.copy:
     dest: /etc/systemd/journald.conf
@@ -32,3 +55,4 @@
     mode: "0644"
     owner: root
     group: root
+  notify: normalize reboot needed

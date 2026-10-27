@@ -14,8 +14,17 @@
   ansible.builtin.user:
     name: "{{ normalize_username }}"
     group: "{{ normalize_username }}"
-    password: "{{ normalize_password | password_hash('sha512') }}"
+    # A stable host/user salt and explicit rounds avoid rehashing on every run.
+    password: >-
+      {{
+        normalize_password | password_hash(
+          'sha512',
+          ([inventory_hostname, normalize_username] | to_json | hash('sha256'))[:16],
+          rounds=656000
+        )
+      }}
   when: normalize_password is defined
+  no_log: true
 
 - name: set authorized key
   ansible.posix.authorized_key:
@@ -50,10 +59,6 @@
   with_items:
     - sudo
     - wheel
-
-- name: import escapace.sudo role
-  ansible.builtin.import_role:
-    name: escapace.sudo
 
 - name: allow {{ normalize_username }} to have passwordless sudo
   ansible.builtin.lineinfile:

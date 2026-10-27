@@ -1,11 +1,36 @@
 ---
-- name: normalize reboot needed
-  ansible.builtin.reboot:
-    post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"
-  when:
-    - provider is not defined or (provider is defined and provider != "ec2")
-    - ansible_facts["virtualization_type"] != "docker"
+- name: normalize inspect the systemd runtime before cockpit shutdown
+  ansible.builtin.stat:
+    path: /run/systemd/system
+  register: normalize_cockpit_handler_runtime
+  listen: normalize stop cockpit
 
+- name: normalize refresh cockpit activation states before shutdown
+  ansible.builtin.command:
+    argv: [systemctl, show, --property=ActiveState, --value, "{{ item }}"]
+  loop:
+    - cockpit.socket
+    - cockpit.service
+  register: normalize_cockpit_shutdown_states
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - normalize_cockpit_handler_runtime.stat.isdir | default(false)
+  listen: normalize stop cockpit
+
+- name: normalize stop active cockpit units
+  ansible.builtin.systemd_service:
+    name: "{{ item.item }}"
+    state: stopped
+  loop: "{{ normalize_cockpit_shutdown_states.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when:
+    - not ansible_check_mode
+    - item.stdout | default("") in ["active", "activating", "reloading"]
+  listen: normalize stop cockpit
+
+# Handler declaration order ensures relabeling is prepared before the reboot.
 - name: normalize autorelabel
   ansible.builtin.file:
     path: /.autorelabel
@@ -13,3 +38,11 @@
     group: root
     state: touch
     mode: "0755"
+  when: normalize_selinux_state != "disabled"
+
+- name: normalize reboot needed
+  ansible.builtin.reboot:
+    post_reboot_delay: "{{ normalize_reboot_delay | default(100) }}"
+  when:
+    - provider is not defined or (provider is defined and provider != "ec2")
+    - ansible_facts["virtualization_type"] != "docker"

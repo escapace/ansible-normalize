@@ -22,7 +22,7 @@
     "packageManager": {
       "name": "pnpm",
       "onFail": "warn",
-      "version": "^11.20.0"
+      "version": "^11.28.2"
     }
   },
   "homepage": "https://github.com/escapace/ansible-normalize#readme",

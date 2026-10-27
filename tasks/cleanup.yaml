@@ -1,8 +1,19 @@
 ---
-- name: remove autorelabel
-  ansible.builtin.file:
+- name: check for pending selinux relabeling
+  ansible.builtin.stat:
     path: /.autorelabel
-    state: absent
+  register: normalize_pending_relabel
+  tags:
+    - normalize-cleanup
+
+- name: require completed selinux relabeling before cleanup
+  ansible.builtin.assert:
+    that:
+      - not normalize_pending_relabel.stat.exists
+    quiet: true
+    fail_msg: >-
+      SELinux relabeling is pending (/.autorelabel exists). Reboot the build host
+      and let relabeling finish before running normalize-cleanup.
   tags:
     - normalize-cleanup
 

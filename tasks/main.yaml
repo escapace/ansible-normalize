@@ -3,7 +3,15 @@
   ansible.builtin.assert:
     that:
       - normalize_username is defined and normalize_username is string
+      - normalize_username | length > 0
+      - normalize_password is undefined or (normalize_password is string and normalize_password | length > 0)
+      - normalize_key is undefined or normalize_key is none or normalize_key is string
+      - normalize_reboot_delay | int >= 0
     quiet: true
+    fail_msg: >-
+      set a nonempty normalize_username, omit normalize_password or supply a nonempty
+      secret string, use a string or null for normalize_key, and set a nonnegative
+      normalize_reboot_delay
 
 - ansible.builtin.include_tasks: normalize.yaml
   when:

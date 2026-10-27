@@ -13,14 +13,6 @@
       - ghostty-terminfo
       - tar
 
-- name: uninstall unnecessary packages
-  ansible.builtin.dnf:
-    name: "{{ packages }}"
-    state: absent
-  vars:
-    packages:
-      - cockpit
-
 - name: clean up dnf
   ansible.builtin.command: dnf clean all
   changed_when: false

@@ -10,3 +10,4 @@ galaxy_info:
 dependencies:
   - { role: escapace.epel }
   - { role: escapace.escapace_releases }
+  - { role: escapace.sudo }

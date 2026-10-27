@@ -1,4 +1,5 @@
 ---
+- ansible.builtin.include_tasks: cockpit.yaml
 - ansible.builtin.include_tasks: dependencies.yaml
 - ansible.builtin.include_tasks: selinux.yaml
 - ansible.builtin.include_tasks: upgrade.yaml

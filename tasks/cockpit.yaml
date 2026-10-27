@@ -1,0 +1,35 @@
+---
+- name: mask cockpit activation units even when packages are absent
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    masked: true
+  loop:
+    - cockpit.socket
+    - cockpit.service
+  notify: normalize stop cockpit
+
+- name: inspect the systemd runtime before checking cockpit
+  ansible.builtin.stat:
+    path: /run/systemd/system
+  register: normalize_cockpit_runtime
+
+# service_facts only lists services, not the socket that owns port 9090.
+# Queue shutdown for runtime drift even when the persistent masks are unchanged.
+- name: detect running cockpit units that need shutdown
+  ansible.builtin.command:
+    argv: [systemctl, show, --property=ActiveState, --value, "{{ item }}"]
+  loop:
+    - cockpit.socket
+    - cockpit.service
+  register: normalize_cockpit_activation
+  changed_when: normalize_cockpit_activation.stdout in ["active", "activating", "reloading"]
+  check_mode: false
+  when: normalize_cockpit_runtime.stat.isdir | default(false)
+  notify: normalize stop cockpit
+
+- name: remove cockpit packages without autoremoving unrelated dependencies
+  ansible.builtin.dnf:
+    name: "cockpit*"
+    state: absent
+    autoremove: false
+  notify: normalize stop cockpit

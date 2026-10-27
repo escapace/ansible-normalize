@@ -1,0 +1,47 @@
+---
+argument_specs:
+  main:
+    short_description: prepare a host for subsequent golden-image builds
+    options:
+      normalize_username:
+        type: str
+        required: true
+        description: Nonempty account name to create and grant passwordless sudo.
+      normalize_password:
+        type: str
+        no_log: true
+        description: Optional nonempty plaintext password secret; omit for key-only access.
+      normalize_key:
+        type: raw
+        description: SSH authorized-key string; unset, null, or blank leaves existing keys unchanged.
+      normalize_lock_user_password_when_undefined:
+        type: bool
+        default: true
+        description: Replace the user's password with a locked value when normalize_password is omitted.
+      normalize_lock_root_password:
+        type: bool
+        default: true
+        description: Lock root password authentication; false does not unlock an existing lock.
+      normalize_selinux_state:
+        type: str
+        default: enforcing
+        choices:
+          - enforcing
+          - permissive
+          - disabled
+        description: SELinux state to configure with the targeted policy.
+      normalize_tmp_mount_size:
+        type: str
+        default: "50%%"
+        description: Native tmpfs size expression; escape percent signs as %% for systemd.
+      normalize_reboot_delay:
+        type: int
+        default: 180
+        description: Nonnegative post-reboot wait in seconds.
+      normalize_remove_ssh_host_keys:
+        type: bool
+        default: true
+        description: Delete SSH host keys during normalize-cleanup.
+      provider:
+        type: str
+        description: Optional build provider; ec2 skips reboot, vagrant_vmware and vagrant_qemu add guest setup.
