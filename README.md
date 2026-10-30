@@ -3,7 +3,7 @@
 Prepares CentOS Stream and Rocky Linux 9+ hosts for subsequent golden-image builds.
 It creates an administrator account, updates packages, configures SELinux, and
 switches boot-time networking to systemd-networkd. Changes to the kernel, SELinux,
-networking, `/tmp`, or journald configuration can trigger one end-of-role reboot
+networking, or journald configuration can trigger one end-of-role reboot
 before later image-build roles run. Reboots are skipped for `provider: ec2` and
 Docker; those callers must arrange any required reboot.
 
@@ -28,9 +28,16 @@ applying the default password locks.
 - `normalize_selinux_state` defaults to `enforcing`; choices are `enforcing`,
   `permissive`, and `disabled`, using the targeted policy. Full disablement may
   also require the `selinux=0` kernel boot option.
-- `normalize_tmp_mount_size` defaults to `"50%%"`. It accepts a native tmpfs size
-  expression such as `1g` or `50%%`; escape percent signs as `%%` for systemd.
-  The role configures `/tmp` with `nodev`, `noexec`, and `nosuid` for the next mount.
+- `normalize_tmp_mount_size` defaults to `false`. Unset, `false`, or `""` disables
+  role-managed `tmp.mount` boot activation and removes its role-owned override.
+  A size string enables tmpfs for the next boot: positive integer bytes, an
+  integer with a `k`, `m`, `g`, `t`, `p`, or `e` binary suffix, or `1%%` through
+  `100%%`. Escape percent signs as `%%` for systemd. The size is a maximum, not
+  reserved memory. `true`, `null`, and invalid sizes fail validation. The role
+  does not mask the unit or override independent `/etc/fstab` configuration.
+- `normalize_tmp_cleanup_days` defaults to `7`; `normalize_var_tmp_cleanup_days`
+  defaults to `14`. Both accept positive integer day counts within systemd's
+  age range. Zero is invalid because it would request unconditional cleanup.
 - `normalize_reboot_delay` defaults to `180`: the nonnegative wait in seconds
   after a reboot.
 - `normalize_remove_ssh_host_keys` defaults to `true` and applies only to cleanup.
@@ -62,6 +69,20 @@ Postfix and kdump, removes rsyslog, and configures volatile journal storage. It
 enables `logrotate.timer` for file-based logs at boot without explicitly starting
 it. Plan for these networking and logging changes before using it on an existing
 host.
+
+The `/tmp` mount policy only prepares boot configuration. It never mounts or
+unmounts `/tmp`, migrates its contents, or triggers a reboot by itself. When tmpfs
+is enabled, it uses `strictatime`, `nodev`, `nosuid`, and the vendor inode limit,
+without `noexec` so development tools can generate executable code.
+
+Native tmpfiles ageing is independent of the mount policy: `/tmp` uses a seven-day
+cutoff and `/var/tmp` fourteen days by default, whether storage is RAM- or
+disk-backed. The role adopts the vendor `tmp.conf` only when no administrator
+copy exists, then manages the two directory rules while preserving other entries.
+Other package-specific tmpfiles files remain in effect. Ages follow systemd's
+timestamp and locking rules, not creation age alone or process liveness.
+The packaged `systemd-tmpfiles-clean.timer` retains its native boot wiring and
+schedule; the role neither replaces it nor runs cleanup during configuration.
 
 Normalization also removes `/var/lib/rsyslog/` and the regular files
 `/var/log/cron`, `/var/log/maillog`, `/var/log/messages`, `/var/log/secure`, and

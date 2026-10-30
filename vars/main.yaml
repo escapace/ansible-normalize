@@ -1,0 +1,8 @@
+---
+normalize_tmp_mount_enabled: >-
+  {{ normalize_tmp_mount_size is defined and normalize_tmp_mount_size is string and normalize_tmp_mount_size | length > 0 }}
+normalize_tmpfiles_directories:
+  - path: /tmp
+    days: "{{ normalize_tmp_cleanup_days }}"
+  - path: /var/tmp
+    days: "{{ normalize_var_tmp_cleanup_days }}"

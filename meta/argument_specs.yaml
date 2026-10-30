@@ -31,9 +31,17 @@ argument_specs:
           - disabled
         description: SELinux state to configure with the targeted policy.
       normalize_tmp_mount_size:
-        type: str
-        default: "50%%"
-        description: Native tmpfs size expression; escape percent signs as %% for systemd.
+        type: raw
+        default: false
+        description: false or empty disables tmp.mount at boot; a size string enables it after restart.
+      normalize_tmp_cleanup_days:
+        type: int
+        default: 7
+        description: Positive whole-day age for native cleanup under /tmp, independent of its filesystem.
+      normalize_var_tmp_cleanup_days:
+        type: int
+        default: 14
+        description: Positive whole-day age for native cleanup under /var/tmp.
       normalize_reboot_delay:
         type: int
         default: 180

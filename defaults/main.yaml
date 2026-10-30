@@ -8,12 +8,8 @@ normalize_remove_ssh_host_keys: true
 normalize_lock_user_password_when_undefined: true
 normalize_lock_root_password: true
 
-# https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt
-#
-# The limit of allocated bytes for this tmpfs instance. The default is half of your physical RAM
-# without swap. This parameter accepts a suffix k, m, or g for kilo, mega, and giga. The size
-# parameter also accepts a suffix % to limit this tmpfs instance to that percentage of your
-# physical RAM. The default, when neither size nor nr_blocks is specified, is size=50%.
-#
-# If a percentage (%) is used in the size, it must be escaped as "%%" according to systemd rules.
-normalize_tmp_mount_size: "50%%"
+# A size string enables tmpfs at the next boot; false keeps existing storage.
+# Escape percentage sizes as %% for systemd.
+normalize_tmp_mount_size: false
+normalize_tmp_cleanup_days: 7
+normalize_var_tmp_cleanup_days: 14

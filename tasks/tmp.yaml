@@ -1,17 +1,94 @@
 ---
-- name: create directory /etc/systemd/system/tmp.mount.d
+- name: validate temporary directory configuration types
+  ansible.builtin.assert:
+    that:
+      - (normalize_tmp_mount_size | default(false)) is sameas false or normalize_tmp_mount_size is string
+    quiet: true
+    fail_msg: normalize_tmp_mount_size must be false, an empty string, or a valid size string
+
+- name: validate the enabled tmpfs size
+  ansible.builtin.assert:
+    that:
+      - normalize_tmp_mount_size == normalize_tmp_mount_size | trim
+      - normalize_tmp_mount_size is match('^[1-9][0-9]*([kKmMgGtTpPeE]|%%)?$')
+      - not normalize_tmp_mount_size.endswith('%%') or (normalize_tmp_mount_size[:-2] | int) <= 100
+      - >-
+        normalize_tmp_mount_size.endswith('%%') or
+        (normalize_tmp_mount_size | upper | ansible.builtin.human_to_bytes(default_unit='B')) <= 9223372036854775807
+    quiet: true
+    fail_msg: supply positive integer bytes, a k/m/g/t/p/e size, or a percentage from 1%% to 100%%
+  when: normalize_tmp_mount_enabled
+
+- name: validate temporary directory cleanup ages
+  ansible.builtin.assert:
+    that:
+      - item.days is integer
+      - item.days > 0
+      # Native tmpfiles ages are unsigned 64-bit microsecond counts.
+      - item.days <= 213503982
+    quiet: true
+    fail_msg: temporary directory cleanup ages must be positive whole-day counts within systemd range
+  loop: "{{ normalize_tmpfiles_directories }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: create the enabled tmp mount override directory
   ansible.builtin.file:
     path: /etc/systemd/system/tmp.mount.d
     state: directory
     mode: "0755"
     owner: root
     group: root
+  when: normalize_tmp_mount_enabled
 
-- name: create /etc/systemd/system/tmp.mount.d/override.conf
+- name: configure the enabled tmp mount for the next boot
   ansible.builtin.template:
-    src: templates/tmp-mount-override.conf
+    src: "{{ role_path }}/templates/tmp-mount-override.conf"
     dest: /etc/systemd/system/tmp.mount.d/override.conf
     mode: "0644"
     owner: root
     group: root
-  notify: normalize reboot needed
+  when: normalize_tmp_mount_enabled
+  notify: normalize daemon-reload
+
+- name: remove the role tmp mount override when disabled
+  ansible.builtin.file:
+    path: /etc/systemd/system/tmp.mount.d/override.conf
+    state: absent
+  when: not normalize_tmp_mount_enabled
+  notify: normalize daemon-reload
+
+- name: configure tmp mount boot policy without mounting or unmounting it
+  ansible.builtin.systemd_service:
+    name: tmp.mount
+    enabled: "{{ normalize_tmp_mount_enabled }}"
+
+- name: ensure the administrator tmpfiles configuration directory exists
+  ansible.builtin.file:
+    path: /etc/tmpfiles.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: preserve the vendor tmpfiles rules when adopting local policy
+  ansible.builtin.copy:
+    src: /usr/lib/tmpfiles.d/tmp.conf
+    dest: /etc/tmpfiles.d/tmp.conf
+    remote_src: true
+    force: false
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: configure native temporary directory cleanup ages
+  ansible.builtin.lineinfile:
+    path: /etc/tmpfiles.d/tmp.conf
+    regexp: '^[dDeqQv][+!~^=$-]*\s+{{ item.path | regex_escape }}\s+'
+    line: "q {{ item.path }} 1777 root root {{ item.days }}d"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ normalize_tmpfiles_directories }}"
+  loop_control:
+    label: "{{ item.path }}"

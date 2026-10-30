@@ -1,4 +1,19 @@
 ---
+- name: normalize inspect the systemd runtime before reload
+  ansible.builtin.stat:
+    path: /run/systemd/system
+  register: normalize_reload_runtime
+  listen: normalize daemon-reload
+
+- name: normalize reload the active systemd manager
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when:
+    - not ansible_check_mode
+    - ansible_facts.get('service_mgr') == 'systemd'
+    - normalize_reload_runtime.stat.isdir | default(false)
+  listen: normalize daemon-reload
+
 - name: normalize inspect the systemd runtime before cockpit shutdown
   ansible.builtin.stat:
     path: /run/systemd/system
