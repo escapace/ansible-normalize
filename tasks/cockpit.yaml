@@ -6,6 +6,8 @@
   loop:
     - cockpit.socket
     - cockpit.service
+  # Minimal container images may not provide systemctl.
+  ignore_errors: true
   notify: normalize stop cockpit
 
 - name: inspect the systemd runtime before checking cockpit
