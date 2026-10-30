@@ -20,6 +20,8 @@
   register: normalize_selinux_result
   # A pending boot transition still needs handlers when no new configuration changes.
   changed_when: normalize_selinux_result.changed or (normalize_selinux_result.reboot_required | default(false))
+  # Docker uses the host kernel's SELinux state; only configure the image below.
+  when: ansible_facts["virtualization_type"] != "docker"
   notify:
     - normalize autorelabel
     - normalize reboot needed
