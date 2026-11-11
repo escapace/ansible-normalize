@@ -1,15 +1,15 @@
 ---
 normalize_reboot_delay: 180
-normalize_selinux_state: enforcing
 normalize_remove_ssh_host_keys: true
+
+normalize_lock_root_password: true
 
 # Preserve historical key-only defaults unless a deployment explicitly keeps
 # existing local passwords for console recovery.
 normalize_lock_user_password_when_undefined: true
-normalize_lock_root_password: true
-
+normalize_selinux_state: enforcing
+normalize_tmp_cleanup_days: 7
 # A size string enables tmpfs at the next boot; false keeps existing storage.
 # Escape percentage sizes as %% for systemd.
 normalize_tmp_mount_size: false
-normalize_tmp_cleanup_days: 7
 normalize_var_tmp_cleanup_days: 14

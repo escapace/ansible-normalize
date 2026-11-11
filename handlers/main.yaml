@@ -1,39 +1,41 @@
 ---
 - name: normalize inspect the systemd runtime before reload
+  listen: normalize daemon-reload
+
   ansible.builtin.stat:
     path: /run/systemd/system
   register: normalize_reload_runtime
+- name: normalize reload the active systemd manager
   listen: normalize daemon-reload
 
-- name: normalize reload the active systemd manager
   ansible.builtin.systemd_service:
     daemon_reload: true
   when:
     - not ansible_check_mode
     - ansible_facts.get('service_mgr') == 'systemd'
     - normalize_reload_runtime.stat.isdir | default(false)
-  listen: normalize daemon-reload
-
 - name: normalize inspect the systemd runtime before cockpit shutdown
+  listen: normalize stop cockpit
+
   ansible.builtin.stat:
     path: /run/systemd/system
   register: normalize_cockpit_handler_runtime
+- name: normalize refresh cockpit activation states before shutdown
   listen: normalize stop cockpit
 
-- name: normalize refresh cockpit activation states before shutdown
   ansible.builtin.command:
     argv: [systemctl, show, --property=ActiveState, --value, "{{ item }}"]
+  register: normalize_cockpit_shutdown_states
+  changed_when: false
   loop:
     - cockpit.socket
     - cockpit.service
-  register: normalize_cockpit_shutdown_states
-  changed_when: false
   when:
     - not ansible_check_mode
     - normalize_cockpit_handler_runtime.stat.isdir | default(false)
+- name: normalize stop active cockpit units
   listen: normalize stop cockpit
 
-- name: normalize stop active cockpit units
   ansible.builtin.systemd_service:
     name: "{{ item.item }}"
     state: stopped
@@ -43,8 +45,6 @@
   when:
     - not ansible_check_mode
     - item.stdout | default("") in ["active", "activating", "reloading"]
-  listen: normalize stop cockpit
-
 # Handler declaration order ensures relabeling is prepared before the reboot.
 - name: normalize autorelabel
   ansible.builtin.file:

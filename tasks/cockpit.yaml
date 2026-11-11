@@ -3,11 +3,11 @@
   ansible.builtin.systemd_service:
     name: "{{ item }}"
     masked: true
+  # Minimal container images may not provide systemctl.
+  ignore_errors: true
   loop:
     - cockpit.socket
     - cockpit.service
-  # Minimal container images may not provide systemctl.
-  ignore_errors: true
   notify: normalize stop cockpit
 
 - name: inspect the systemd runtime before checking cockpit
@@ -20,12 +20,12 @@
 - name: detect running cockpit units that need shutdown
   ansible.builtin.command:
     argv: [systemctl, show, --property=ActiveState, --value, "{{ item }}"]
-  loop:
-    - cockpit.socket
-    - cockpit.service
   register: normalize_cockpit_activation
   changed_when: normalize_cockpit_activation.stdout in ["active", "activating", "reloading"]
   check_mode: false
+  loop:
+    - cockpit.socket
+    - cockpit.service
   when: normalize_cockpit_runtime.stat.isdir | default(false)
   notify: normalize stop cockpit
 

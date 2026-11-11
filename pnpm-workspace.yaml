@@ -12,11 +12,13 @@ minimumReleaseAgeExclude:
   - '@escapace/*'
   - '@pangram/*'
   - '@pointe/*'
-  - eslint-config-escapace
-  - prettier-config-escapace
+  - oxlint-config-escapace
 minimumReleaseAgeExcludePrune: true
 minimumReleaseAgeStrict: true
+skills:
+  dirs: []
 strictDepBuilds: true
+trustLockfile: false
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - '@eslint/*'

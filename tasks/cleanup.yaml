@@ -97,6 +97,7 @@
 
 - name: truncate files
   ansible.builtin.command: "truncate -s 0 {{ item }}"
+  ignore_errors: true
   loop:
     - /etc/machine-id
     - /etc/resolv.conf
@@ -109,7 +110,6 @@
     - /var/log/messages
     - /var/log/secure
     - /var/log/spooler
-  ignore_errors: true
   tags:
     - normalize-cleanup
 

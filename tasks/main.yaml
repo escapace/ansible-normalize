@@ -23,8 +23,6 @@
       )
 
 - ansible.builtin.include_tasks: cleanup.yaml
-  tags:
-    - normalize-cleanup
   when:
     - "'normalize-cleanup' in ansible_run_tags"
     - >-
@@ -32,3 +30,5 @@
       (ansible_facts["distribution"] == "CentOS" and ansible_facts["distribution_major_version"]|int > 8) or
       (ansible_facts["distribution"] == "Rocky" and ansible_facts["distribution_major_version"]|int > 8)
       )
+  tags:
+    - normalize-cleanup
